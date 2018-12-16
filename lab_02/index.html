@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Koshkina LAB_2</title>
+	<style type="text/css">
+		#board {
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+		.space_bar {
+			display: table;
+			height: 80px;
+			width: 1000px;
+			background-color: Gainsboro;
+			border: 1px solid DarkGrey;
+		}
+		.bar {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+		}
+		button {
+			width: 120px;
+			height: 40px;
+			margin: 10px 10px 10px 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id='board' width="1000" height="500"></canvas>
+
+	<!-- Блок с кнопками -->
+	<section class='space_bar'>
+		<section class='bar'>
+			<button onclick="eventErase()"><img src="sprite/erase.png" width='32' style="vertical-align: middle"> ERASE</button>
+			<button onclick="eventLine()"><img src="sprite/line.png" width='32' style="vertical-align: middle"> LINE</button>
+			<button onclick="eventCircle()"><img src="sprite/circle.png" width='32' style="vertical-align: middle"> CIRCLE</button>
+		</section>
+	</section>
+
+	<script type="text/javascript">
+		var canvas = document.getElementById('board');
+		var ctx = canvas.getContext('2d');
+
+		var x_1;
+		var x_2;
+		var y_1;
+		var y_2;
+
+		var line = false;
+		var circle = false;
+
+
+		function rectPixel(x, y, c) {
+			ctx.fillStyle = c;
+			ctx.fillRect(x, y, 3, 3);
+		}
+
+		function drawFigure(x_1, y_1, x_2, y_2) {
+
+			var width = Math.abs(x_2 - x_1);
+			var height = Math.abs(y_2 - y_1);
+
+			if(line) {
+				var step_x = x_1 < x_2 ? 1 : -1;
+				var step_y = y_1 < y_2 ? 1 : -1;
+				var rotate = width - height;
+				
+				rectPixel(x_2, y_2, "MediumPurple");
+
+				while(x_1 != x_2 || y_1 != y_2) {
+					rectPixel(x_1, y_1, "MediumPurple");
+					var sys = rotate * 2;
+
+					if(sys > -height) {
+						rotate -= height;
+						x_1 += step_x;
+					}
+
+					if(sys < width) {
+						rotate += width;
+						y_1 += step_y;
+					}
+				}
+			}
+
+			if(circle) {
+				var radius = Math.round(Math.sqrt(width * width + height * height));
+				var step_x = 0;
+				var step_y = radius;
+				var gap = 0;
+				delta = (2 - 2 * radius);
+
+				while(step_y >= 0) {
+					rectPixel(x_1 + step_x, y_1 + step_y, "Crimson");
+					rectPixel(x_1 + step_x, y_1 - step_y, "Crimson");
+					rectPixel(x_1 - step_x, y_1 - step_y, "Crimson");
+					rectPixel(x_1 - step_x, y_1 + step_y, "Crimson");
+					
+					gap = 2 * (delta + step_y) - 1;
+		                if (delta < 0 && gap <= 0)
+		                {
+		                    step_x++;
+		                    delta += 2 * step_x + 1;
+		                    continue;
+		                }
+		                if (delta > 0 && gap > 0)
+		                {
+		                    step_y--;
+		                    delta -= 2 * step_y + 1;
+		                    continue;
+		                }
+		                step_x++;
+		                delta += 2 * (step_x - step_y);
+		                step_y--;
+				}
+			}
+		}
+
+
+		function second(event) {
+			x_2 = event.clientX;
+			y_2 = event.clientY;
+
+			rectPixel(x_2, y_2, "DarkGrey");
+
+			drawFigure(x_1, y_1, x_2, y_2);
+
+			canvas.removeEventListener('click', second, false);
+			canvas.addEventListener('click', first, false);
+		}
+
+		function first(event) {
+			x_1 = event.clientX;
+			y_1 = event.clientY;
+
+			rectPixel(x_1, y_1, "DarkGrey");
+
+			canvas.removeEventListener('click', first, false);
+			canvas.addEventListener('click', second, false);
+		}
+
+		function eventLine() {
+			line = true;
+			circle = false;
+
+			canvas.removeEventListener('click', second, false);
+			canvas.addEventListener('click', first, false);
+		}
+		
+		function eventCircle() {
+			line = false;
+			circle = true;
+
+			canvas.removeEventListener('click', second, false);
+			canvas.addEventListener('click', first, false);
+		}
+
+		function eventErase() {
+			line = false;
+			circle = false;
+			ctx.clearRect(0, 0, 1000, 500);
+		}
+
+
+
+
+	</script>
+</body>
+</html>

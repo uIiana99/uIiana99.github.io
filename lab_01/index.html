@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Koshkina LAB_1</title>
+	<style type="text/css">
+		#example {
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+	</style>
+</head>
+<body>
+	<canvas id='example' width="612" height="150">Обновите браузер</canvas>
+		<script>
+			var example = document.getElementById("example"), // Возвращает ссылку на элемент по его идентификатору (ID).
+			ctx_1 = example.getContext('2d'); // Определяем тип рисования 2d плоский.
+			ctx_2 = example.getContext('2d');
+
+			var x = 0;
+			var y_1 = 20;
+			var y_2 = 120;
+			var z = 100;
+
+			setInterval( function() {
+				if( z < 700) {
+					if( x < z ) {
+						x += 2;
+						y_1 += 2;
+						y_2 -= 2;
+						ctx_1.fillStyle = 'Indigo';
+						ctx_1.fillRect(x, y_1, 10, 10);
+						ctx_2.fillStyle = 'BlueViolet';
+						ctx_2.fillRect(x, y_2, 10, 10);
+					} else {
+						if ( y_1 != 20 ) {
+							x += 2;
+							y_1 -= 2;
+							y_2 += 2;
+							ctx_2.fillStyle = 'BlueViolet';
+							ctx_2.fillRect(x, y_1, 10, 10);
+							ctx_1.fillStyle = 'Indigo';
+							ctx_1.fillRect(x, y_2, 10, 10);
+						} else {
+							z += 100;
+						}
+					}
+				}
+				// ctx.fillRect(x, y, 10, 10);
+			}, 5 );
+		</script>
+</body>
+</html>

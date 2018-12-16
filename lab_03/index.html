@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Koshkina LAB_3</title>
+	<style type="text/css">
+		#Canvas2D {
+			height: 500px;
+			width: 1200px;
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id='Canvas2D' height='500' width='1200'/>
+
+	<script>
+		var buffer = [];
+		var img = new Image();
+		img.src = 'picture.jpg';
+
+		img.onload = function() {
+		  draw(this);
+		};
+
+		function draw(img) {
+
+			var canvas = document.getElementById('Canvas2D');
+		    var ctx = canvas.getContext('2d');
+		    var ctxs = canvas.getContext('2d');
+
+		    ctx.drawImage(img, 0, 0);
+			
+		    var imageData, data, sImageData, sData;
+			var RED, GREEN, BLUE, xRED, xGREEN, xBLUE;
+			
+		    var smooth = function() {
+				for(var j = 0; j < img.height;) {
+					for(var i = 0; i < img.width;) {
+						if((j == 0) || (j == img.height-1) || (j == img.height-2) || (i == 0) || (i == img.width-1) || (i == img.width-2)){
+
+							imageData = ctx.getImageData(i, j, 3, 3);
+							data = imageData.data;
+
+							RED = data[0];
+							GREEN = data[1];
+							BLUE = data[2];
+
+							buffer.push(RED);
+							buffer.push(GREEN);
+							buffer.push(BLUE);
+							buffer.push(255);
+
+						} else {
+
+							imageData = ctx.getImageData(i, j, 3, 3);
+							data = imageData.data;
+
+							xRED = 0;
+							xGREEN = 0;
+							xBLUE = 0;
+
+							for(var count = 0; count < 9; count++) {
+								xRED   += data[4 * count + 0];
+								xGREEN += data[4 * count + 1];
+								xBLUE  += data[4 * count + 2];
+							}
+
+							RED   = Math.floor(xRED   / 9);
+							GREEN = Math.floor(xGREEN / 9);
+							BLUE  = Math.floor(xBLUE  / 9);
+
+
+							buffer.push(RED);
+							buffer.push(GREEN);
+							buffer.push(BLUE);
+							buffer.push(255);
+						}
+						i += 1;
+					}
+					j += 1;
+				}
+		    };
+
+			smooth();
+		
+			sImageData = ctxs.getImageData(500, 0, img.width, img.height);
+			sData = sImageData.data;
+
+			for(var count = 0; count < sData.length; count++) {
+				sData[count] = buffer[count];
+			}
+
+			ctx.putImageData(sImageData, 600, 0);
+		}
+		
+	</script>
+</body>
+</html>

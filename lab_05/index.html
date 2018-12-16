@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Koshkina LAB_5</title>
+	<style type="text/css">
+		#board {
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+		.space_bar {
+			display: table;
+			height: 80px;
+			width: 1000px;
+			background-color: Gainsboro;
+			border: 1px solid DarkGrey;
+		}
+		.bar {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+		}
+		button {
+			width: 120px;
+			height: 40px;
+			margin: 10px 10px 10px 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id='board' width="1000" height="500"></canvas>
+
+	<!-- Блок с кнопками -->
+	<section class='space_bar'>
+		<section class='bar'>
+			<button onclick="eventErase()"><img src="sprite/erase.png" width='32' style="vertical-align: middle"> ERASE</button>
+			<button onclick="eventLine()"><img src="sprite/line.png" width='32' style="vertical-align: middle"> LINE</button>
+			<button onclick="eventCrop()"><img src="sprite/cut.png" width='32' style="vertical-align: middle"> CROP</button>
+		</section>
+	</section>
+
+	<script type="text/javascript">
+		var canvas = document.getElementById('board');
+		var ctx = canvas.getContext('2d');
+
+		var buffer = [];
+		var bufferCut = [];
+
+		var buf_size = 0;
+
+
+		function rectPixel(x, y, c) {
+			ctx.fillStyle = c;
+			ctx.fillRect(x, y, 3, 3);
+		}
+
+
+		function drawLine(Xmin, Ymin, Xmax, Ymax) {
+
+			var width = Math.abs(Xmax - Xmin);
+			var height = Math.abs(Ymax - Ymin);
+
+
+			var step_x = Xmin < Xmax ? 1 : -1;
+			var step_y = Ymin < Ymax ? 1 : -1;
+			var rotate = width - height;
+			
+			rectPixel(Xmax, Ymax, "MediumPurple");
+
+			while(Xmin != Xmax || Ymin != Ymax) {
+				rectPixel(Xmin, Ymin, "MediumPurple");
+				var sys = rotate * 2;
+
+				if(sys > -height) {
+					rotate -= height;
+					Xmin += step_x;
+				}
+
+				if(sys < width) {
+					rotate += width;
+					Ymin += step_y;
+				}
+			}
+		}
+
+
+		// Обработка 4-х случаев выбора вершины
+		function drawCutPre(x1, y1, x2, y2) {
+			if(x1 < x2 && y1 < y2) drawCut(x1, y1, x2, y2);
+			if(x1 > x2 && y1 < y2) drawCut(x2, y1, x1, y2);
+			if(x1 < x2 && y1 > y2) drawCut(x1, y2, x2, y1);
+			if(x1 > x2 && y1 > y2) drawCut(x2, y2, x1, y1);
+		}
+
+		// Алгоритм
+		function drawCut(Xmin, Ymin, Xmax, Ymax) {
+
+			ctx.clearRect(0, 0, 1000, 500);
+
+			for(var i = 0; i < buffer.length; i+=4) {
+
+				var flag = true;
+				var t0 = 0, t1 = 1;
+
+				var x0 = buffer[i];
+				var y0 = buffer[i+1];
+				var x1 = buffer[i+2];
+				var y1 = buffer[i+3];
+
+				var m = [-(x1 - x0), x1 - x0, -(y1 - y0), y1 - y0];
+				var q = [x0 - Xmin, Xmax - x0, y0 - Ymin, Ymax  - y0];
+
+				for(var k = 0; k < 4; k++) {
+					var r = q[k]/m[k];
+
+					if(m[k] < 0)
+					{
+						if(t1 < r) flag = false;
+						else if(t0 < r) t0 = r;
+					}
+					else if (m[k] > 0)
+					{
+						if(t0 > r) flag = false;
+						else if(t1 > r) t1 = r;
+					}
+					else if(q[k] < 0) flag = false;				
+					if(t0 > t1) flag = false;
+				}
+
+				if(flag) {
+					buffer[i] 	= parseInt(x0 + t0*(x1 - x0));
+					buffer[i+1] = parseInt(y0 + t0*(y1 - y0));
+					buffer[i+2] = parseInt(x0 + t1*(x1 - x0));
+					buffer[i+3] = parseInt(y0 + t1*(y1 - y0));
+
+					drawLine(buffer[i], buffer[i+1], buffer[i+2], buffer[i+3]);
+				}
+			}
+
+			ctx.strokeStyle = "Crimson";
+			ctx.strokeRect(Xmin, Ymin, Xmax-Xmin, Ymax-Ymin);
+
+		}
+
+
+
+		function setLine(event) {
+			buffer.push(event.clientX);
+			buffer.push(event.clientY);
+
+			rectPixel(event.clientX, event.clientY, "MediumPurple");
+
+			if(buffer.length % 4 == 0) {
+				drawLine(buffer[buf_size], buffer[buf_size+1], buffer[buf_size+2], buffer[buf_size+3]);
+				buf_size += 4;
+			}
+		}
+
+		function setSquare(event) {
+			bufferCut.push(event.clientX);
+			bufferCut.push(event.clientY);
+
+			rectPixel(event.clientX, event.clientY, "Crimson");
+
+			if(bufferCut.length % 4 == 0) {
+				drawCutPre(bufferCut[0], bufferCut[1], bufferCut[2], bufferCut[3]);
+				while(bufferCut.length != 0) {
+					bufferCut.pop();
+				}
+			}
+		}
+
+
+		// Активируем функцию setLine()
+		function eventLine() {
+			canvas.removeEventListener('click', setSquare, false);
+			canvas.addEventListener('click', setLine, false);
+		}
+		
+		// Активируем функцию setSquare()
+		function eventCrop() {
+			canvas.removeEventListener('click', setLine, false);
+			canvas.addEventListener('click', setSquare, false);
+		}
+
+		// Функция очищения экрана
+		function eventErase() {
+			ctx.clearRect(0, 0, 1000, 500);
+
+			while(buffer.length != 0) {
+					buffer.pop();
+				}
+
+			buf_size = 0;
+
+			canvas.removeEventListener('click', setLine, false);
+			canvas.removeEventListener('click', setSquare, false);
+		}
+
+
+	</script>
+</body>
+</html>
