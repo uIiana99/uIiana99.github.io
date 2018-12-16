@@ -1,53 +1,63 @@
 body {
-	font-family: arial;
-	background: url(bg/cr.jpg) repeat;
+  font-family: arial;
+  background: url(bg/cr.jpg) repeat;
 }
 .general {
-	display: block;
-	width: 1000px;
-	min-height: 10px;
-	margin: auto;
-	margin-top: 20px;
-	text-align: center;
-	background-color: #D2B48C;
-	border: 1px solid #696969;
+  display: block;
+  width: 1000px;
+  min-height: 10px;
+  margin: auto;
+  margin-top: 20px;
+  text-align: center;
+  background-color: #D2B48C;
+  border: 1px solid #696969;
 }
 #header {
-	background: url(bg/bg.jpg) no-repeat;
-	background-size: 100%;
-	color: white;
+  background: url(bg/bg.jpg) no-repeat;
+  background-size: 100%;
+  color: white;
 }
 #context {
-	background-color: #E6E6FA;
+  background-color: #E6E6FA;
 }
 .shadow {
-	width: 700px;
-	min-height: 10px;
-	margin: auto;
-	padding: 10px;
-	background-color: rgba(0, 0, 0, 0.5);
+  width: 700px;
+  min-height: 10px;
+  margin: auto;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 table { 
-    width: 300px; /* Ширина таблицы */
-    border-spacing: 0; /* Расстояние между ячейками */
-    margin: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #696969;
-   }
-   td:hover {
-   	background-color: rgba(0, 0, 0, 0.5);
-   	color: white;
-   }
-   .ok:nth-child(2n) {
-    background: #E1FFDB; /* Цвет фона */
-   } 
-   .ok:nth-child(2n-1) {
-    background: #CCFFC2; /* Цвет фона */
-   } 
-   .not:nth-child(2n) {
-    background: #FFE1E0; /* Цвет фона */
-   } 
-   .not:nth-child(2n-1) {
-    background: #FFD3D1; /* Цвет фона */
-   }
+  width: 300px; /* Ширина таблицы */
+  border-spacing: 0; /* Расстояние между ячейками */
+  margin: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #696969;
+}
+
+td a {
+  display: block;
+  text-decoration: none;
+  color: black;
+  padding: 14px;
+}
+
+td:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+td a:hover {
+  color: white;
+}
+.ok:nth-child(2n) {
+  background: #E1FFDB; /* Цвет фона */
+} 
+.ok:nth-child(2n-1) {
+  background: #CCFFC2; /* Цвет фона */
+} 
+.not:nth-child(2n) {
+  background: #FFE1E0; /* Цвет фона */
+} 
+.not:nth-child(2n-1) {
+  background: #FFD3D1; /* Цвет фона */
+}
