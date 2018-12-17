@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Koshkina LAB_7</title>
+	<style type="text/css">
+		#board {
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+		.space_bar {
+			display: table;
+			height: 80px;
+			width: 1000px;
+			background-color: Gainsboro;
+			border: 1px solid DarkGrey;
+		}
+		.bar {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+		}
+		button {
+			width: 120px;
+			height: 40px;
+			margin: 10px 10px 10px 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id='board' width="1000" height="500"></canvas>
+
+	<!-- Блок с кнопками -->
+	<section class='space_bar'>
+		<section class='bar'>
+			<button onclick="eventErase()"><img src="sprite/erase.png" width='32' style="vertical-align: middle"> ERASE</button>
+			<button onclick="eventPolygon()"><img src="sprite/polygon.png" width='32' style="vertical-align: middle"> POLYGON</button>
+			<button onclick="eventFill()"><img src="sprite/fill.png" width='32' style="vertical-align: middle"> FILL</button>
+		</section>
+	</section>
+
+
+	<script>
+		var canvas = document.getElementById('board');
+		var ctx = canvas.getContext('2d');
+		var buffer=[];
+
+		// Функция отрисовки линий
+		function drawLine(pt1, pt2, color)
+		{
+	        ctx.beginPath() // Метод необходим для меторда stroke()
+	        ctx.moveTo(pt1[0], pt1[1]);
+	        ctx.lineTo(pt2[0], pt2[1]);
+	        // ctx.closePath(); Замыкает фигуру
+
+	        ctx.lineWidth = 3;
+	        ctx.strokeStyle = color;
+	        ctx.stroke();
+
+		}
+
+		// Фонкция отрисовки контура фигуры
+		function strokeFigure() {
+			for (var i = 0; i < buffer.length; i++) {
+				if (i < buffer.length - 1) {
+					drawLine(buffer[i], buffer[i+1], "Crimson");
+				} else {
+					drawLine(buffer[i], buffer[0], "Crimson");
+				}
+			}
+		}
+
+		// Функция заполнения фигуры
+		function fillFigure() {
+			var tmpBuff;
+			tmpBuff = rastFigure();
+
+	        for(var i = 0; i < tmpBuff.length - 2; i++)
+	        {
+	            if(tmpBuff[i][1] == tmpBuff[i+2][1] && tmpBuff[i][1] != tmpBuff[i+3][1]){
+	                drawLine(tmpBuff[i], tmpBuff[i+2], "LightCoral");
+	                i+=2;
+	            }
+	            else if(tmpBuff[i][1] == tmpBuff[i+1][1]){
+	                drawLine(tmpBuff[i], tmpBuff[i+1], "LightCoral");
+	                i++;
+	            }
+	        }
+
+		}
+
+
+		function oneLine(pt1, pt2) {
+			if ( pt1[0] == pt2[0] || pt1[1] == pt2[1]) { return true; }
+			return false;
+		}
+
+		function rastFigure() {
+			var poly = [];
+			for (var i = 0; i < buffer.length - 1; i++) {
+				if (!oneLine(buffer[i], buffer[i+1])) {
+					poly = poly.concat(rastLine(buffer[i], buffer[i+1])); // Concat добавляет в массив переменные
+				} else {
+					poly.push(buffer[i]);
+				}
+			}
+
+			if (!oneLine(buffer[buffer.length - 1], buffer[0])) {
+				poly = poly.concat(rastLine(buffer[buffer.length - 1], buffer[0]));
+			}
+			return poly.sort(sortFunc); // Сортируем координаты по часовой стрелке с помощью sortFunc()
+		}
+
+		// Отмечаем линии по длине (горизонтали) сверху-вниз (как принтер)
+		function rastLine(pt1, pt2) {
+			var x = pt1[0];
+			var y = pt1[1];
+			var dx = (pt2[0] - pt1[0])/(pt2[1] - pt1[1]);
+			
+			var poly = [];
+
+			if (pt1[1] < pt2[1]){
+				while(y <= pt2[1]){
+					poly.push([x,y]);
+					y++;
+					x += dx;
+				}
+			} else {
+				while(y >= pt2[1]){
+					poly.push([x,y]);
+					y--;
+					x -= dx;
+				}
+			}
+			return poly;
+		}
+
+
+		function sortFunc(pt1, pt2) {
+			if(pt1[1] > pt2[1]) return 1;
+			if(pt1[1] < pt2[1]) return -1;
+			if(pt1[1] == pt2[1]) {
+				if(pt1[0] > pt2[0]) return 1;
+				if(pt1[0] < pt2[0]) return -1;
+				if(pt1[0] == pt2[0]) return 0;
+			}
+		}
+
+
+
+
+		function setPolygon(event) {
+			buffer.push([event.clientX, event.clientY]);
+			ctx.fillStyle = "LightCoral";
+			ctx.fillRect(event.clientX-1, event.clientY-1, 2, 2);
+		}
+
+		
+		function eventPolygon() {
+			canvas.addEventListener('click', setPolygon, false);
+		}
+
+		function eventFill() {
+			canvas.removeEventListener('click', setPolygon, false);
+
+			fillFigure(); // Заполняем многоугольник
+			strokeFigure(); // Обводим многоугольник
+
+			buffer = []; // Очищаем массив координат
+		}
+
+		function eventErase() {
+			canvas.removeEventListener('click', setPolygon, false);
+			
+			ctx.clearRect(0, 0, 1000, 500);
+			buffer = [];
+		}
+
+	</script> 
+</body>
+</html>
