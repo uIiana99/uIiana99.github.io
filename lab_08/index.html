@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Koshkina LAB_8</title>
+	<style type="text/css">
+		body {
+			font-family: Arial;
+			font-size: 14pt;
+		}
+		#board {
+			background-color: Lavender;
+			border: 1px solid DarkGrey;
+		}
+		.space_bar {
+			display: table;
+			height: 80px;
+			width: 1000px;
+			background-color: Gainsboro;
+			border: 1px solid DarkGrey;
+		}
+		.bar {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+			color: DarkSlateBlue;
+		}
+		#message {
+			margin-top: 4px;
+			display: none;
+		}
+		button {
+			width: 120px;
+			height: 40px;
+			margin: 10px 10px 10px 10px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id='board' width="1000" height="500"></canvas>
+
+	<!-- Блок с кнопками -->
+	<section class='space_bar'>
+		<section class='bar'>
+			<button onclick="eventErase()"><img src="sprite/erase.png" width='32' style="vertical-align: middle"> ERASE</button>
+			<button onclick="eventPolygon()"><img src="sprite/polygon.png" width='32' style="vertical-align: middle"> POLYGON</button>
+			<button onclick="eventFill()"><img src="sprite/fill.png" width='32' style="vertical-align: middle"> FILL</button>
+		</section>
+	</section>
+
+	<section id='message' class='space_bar'>
+		<section class='bar'>
+			<p><b>Внимание!</b> Пожалуйста, нажмите левой кнопкой мыши в центр фигуры.</p>
+		</section>
+	</section>
+
+
+	<script>
+		var canvas = document.getElementById('board');
+		var ctx = canvas.getContext('2d');
+		var buffer = [];
+
+
+		function drawLine(pt1, pt2) {
+
+			var Xmin = pt1[0];
+			var Ymin = pt1[1];
+			var Xmax = pt2[0];
+			var Ymax = pt2[1];
+
+			var width = Math.abs(Xmax - Xmin);
+			var height = Math.abs(Ymax - Ymin);
+
+
+			var step_x = Xmin < Xmax ? 1 : -1;
+			var step_y = Ymin < Ymax ? 1 : -1;
+			var rotate = width - height;
+			
+			ctx.fillRect(Xmax, Ymax, 1, 1);
+
+			while(Xmin != Xmax || Ymin != Ymax) {
+				ctx.fillRect(Xmin, Ymin, 1, 1);
+				var sys = rotate * 2;
+
+				if(sys > -height) {
+					rotate -= height;
+					Xmin += step_x;
+				}
+
+				if(sys < width) {
+					rotate += width;
+					Ymin += step_y;
+				}
+			}
+		}
+		
+		// Заполняем фигуру методом ЗАТРАВКИ
+		function fillPolygon(pt) {
+
+			var stack = [];
+			stack.push(pt);
+
+			while(stack.length > 0) // Реализация функции циклом (возможно рекурсией)
+			{
+				var p = stack.pop();
+				var x_min = p[0];
+
+				while(bd_([x_min - 1, p[1]]) == false) // Проходим до левой границы фигуры из указанной точки
+					x_min--;
+
+				var x_max = p[0];
+
+				while(bd_([x_max + 1, p[1]]) == false) // Проходим до правой границы фигуры из указанной точки
+					x_max++;
+
+				drawLine([x_min,p[1]],[x_max,p[1]]);
+
+				up: // Проходим вверх фигуры
+				for(var i = x_min; i <= x_max; i++)
+				{
+					if(bd_([i,p[1] - 1]) == false && bg_([i,p[1] - 1]) == false) // Проверяем цвет границы и заливки
+					{
+						stack.push([i,p[1] - 1]);
+						break up;
+					}
+				}
+
+				down: // Проходим вниз фигуры
+				for(var i = x_min; i <= x_max; i++)
+				{
+					if(bd_([i,p[1] + 1]) == false && bg_([i,p[1] + 1]) == false) // Проверяем цвет границы и заливки
+					{
+						stack.push([i, p[1] + 1]);
+						break down;
+					}
+				}
+			}
+		}
+		
+		// Получем данные пикселя
+		function color(pt) {
+			var imageData = ctx.getImageData(pt[0], pt[1], 1, 1);
+			return imageData.data;
+		}
+
+		// Проверяем совпадение цвета с ребром фигуры (bd - border)
+		function bd_(pt) {
+			if(color(pt)[0] == 220 && color(pt)[1] == 20 && color(pt)[2] == 60) {
+				return true;
+			}
+			return false;
+		}
+		
+		// Проверяем совпадение цвета с уже закрашенной частью фигуры (bg - background)
+		function bg_(pt) {
+			if(color(pt)[0] == 240 && color(pt)[1] == 128 && color(pt)[2] == 128) {
+				return true;
+			}
+			return false;
+		}
+
+
+		function setPolygon(event) {
+			buffer.push([event.clientX, event.clientY]);
+			ctx.fillStyle = 'rgb(220,20,60)'; // "Crimson"
+			ctx.strokeStyle = 'rgb(220,20,60)';
+			if (buffer.length == 1) ctx.fillRect(event.clientX, event.clientY, 1, 1);
+			if (buffer.length > 1) drawLine(buffer[buffer.length - 2], buffer[buffer.length - 1]);
+		}
+
+		function setFill(event) {
+			ctx.fillStyle = 'rgb(240,128,128)'; // "LightCoral"
+			ctx.strokeStyle = 'rgb(240,128,128)';
+
+			fillPolygon([event.clientX, event.clientY]);
+			document.getElementById('message' ).style.display = 'none'; // Делаем подсказку невидимой
+		}
+
+
+
+		function eventPolygon() {
+			canvas.addEventListener('click',setPolygon, false);
+			canvas.removeEventListener('click', setFill, false);
+		}
+
+		function eventFill() {
+			document.getElementById('message' ).style.display = 'table'; // Делаем подсказку видимой
+
+			drawLine(buffer[buffer.length - 1], buffer[0]);
+			buffer = [];
+
+			canvas.addEventListener('click', setFill, false);
+			canvas.removeEventListener('click', setPolygon, false);
+		}
+
+		function eventErase() {
+			document.getElementById('message' ).style.display = 'none'; // Делаем подсказку невидимой
+			
+			canvas.removeEventListener('click', setPolygon, false);
+			canvas.removeEventListener('click', setFill, false);
+			
+			ctx.clearRect(0, 0, 1000, 500);
+			buffer = [];
+		}
+
+	</script>
+</body>
+</html>
